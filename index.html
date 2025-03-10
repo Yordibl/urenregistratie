@@ -31,6 +31,7 @@
     
     <h2>Gewerkte uren</h2>
     <ul id="urenLijst"></ul>
+    <p><strong>Totaal gewerkte uren:</strong> <span id="totaalUren">0</span> uur</p>
     
     <script>
         let huidigeUrenbon = localStorage.getItem("huidigeUrenbon") || "Standaard";
@@ -70,11 +71,45 @@
             let uren = JSON.parse(localStorage.getItem(huidigeUrenbon)) || [];
             let lijst = document.getElementById("urenLijst");
             lijst.innerHTML = "";
+            let totaalMinuten = 0;
+            
             uren.forEach((item, index) => {
                 let li = document.createElement("li");
-                li.textContent = `${item.datum}: ${item.starttijd} - ${item.eindtijd} (${item.beschrijving})`;
+                let duur = berekenDuur(item.starttijd, item.eindtijd);
+                totaalMinuten += duur;
+                li.innerHTML = `${item.datum}: ${item.starttijd} - ${item.eindtijd} (${item.beschrijving}) 
+                <button onclick="bewerkUur(${index})">✏️</button>
+                <button onclick="verwijderUur(${index})">❌</button>`;
                 lijst.appendChild(li);
             });
+            
+            document.getElementById("totaalUren").textContent = (totaalMinuten / 60).toFixed(2);
+        }
+        
+        function bewerkUur(index) {
+            let uren = JSON.parse(localStorage.getItem(huidigeUrenbon)) || [];
+            let item = uren[index];
+            
+            document.getElementById("datum").value = item.datum;
+            document.getElementById("starttijd").value = item.starttijd;
+            document.getElementById("eindtijd").value = item.eindtijd;
+            document.getElementById("beschrijving").value = item.beschrijving;
+            
+            verwijderUur(index);
+        }
+        
+        function verwijderUur(index) {
+            let uren = JSON.parse(localStorage.getItem(huidigeUrenbon)) || [];
+            uren.splice(index, 1);
+            localStorage.setItem(huidigeUrenbon, JSON.stringify(uren));
+            toonUren();
+        }
+        
+        function berekenDuur(start, einde) {
+            let startTijd = start.split(":"), eindTijd = einde.split(":");
+            let startMinuten = parseInt(startTijd[0]) * 60 + parseInt(startTijd[1]);
+            let eindMinuten = parseInt(eindTijd[0]) * 60 + parseInt(eindTijd[1]);
+            return eindMinuten - startMinuten;
         }
         
         function laadUrenbonnen() {
