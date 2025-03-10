@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Urenregistratie</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <h1>Urenregistratie</h1>
+    
+    <h2>Nieuwe urenbon</h2>
+    <form id="urenbonForm">
+        <label>Naam urenbon: <input type="text" id="urenbonNaam" required></label>
+        <button type="submit">Aanmaken</button>
+    </form>
+    
+    <h2>Bestaande urenbonnen</h2>
+    <select id="urenbonSelect"></select>
+    <button onclick="wisselUrenbon()">Laden</button>
+    
+    <h2>Uren invoeren</h2>
+    <form id="urenForm">
+        <label>Datum: <input type="date" id="datum" required></label><br>
+        <label>Starttijd: <input type="time" id="starttijd" required></label><br>
+        <label>Eindtijd: <input type="time" id="eindtijd" required></label><br>
+        <label>Beschrijving: <input type="text" id="beschrijving"></label><br>
+        <button type="submit">Toevoegen</button>
+    </form>
+    
+    <h2>Gewerkte uren</h2>
+    <ul id="urenLijst"></ul>
+    
+    <script>
+        let huidigeUrenbon = localStorage.getItem("huidigeUrenbon") || "Standaard";
+        laadUrenbonnen();
+        toonUren();
+        
+        document.getElementById("urenbonForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let naam = document.getElementById("urenbonNaam").value;
+            let urenbonnen = JSON.parse(localStorage.getItem("urenbonnen")) || [];
+            if (!urenbonnen.includes(naam)) {
+                urenbonnen.push(naam);
+                localStorage.setItem("urenbonnen", JSON.stringify(urenbonnen));
+            }
+            localStorage.setItem("huidigeUrenbon", naam);
+            laadUrenbonnen();
+            toonUren();
+        });
+        
+        document.getElementById("urenForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            
+            let datum = document.getElementById("datum").value;
+            let starttijd = document.getElementById("starttijd").value;
+            let eindtijd = document.getElementById("eindtijd").value;
+            let beschrijving = document.getElementById("beschrijving").value;
+            
+            let item = { datum, starttijd, eindtijd, beschrijving };
+            let uren = JSON.parse(localStorage.getItem(huidigeUrenbon)) || [];
+            uren.push(item);
+            localStorage.setItem(huidigeUrenbon, JSON.stringify(uren));
+            
+            toonUren();
+        });
+        
+        function toonUren() {
+            let uren = JSON.parse(localStorage.getItem(huidigeUrenbon)) || [];
+            let lijst = document.getElementById("urenLijst");
+            lijst.innerHTML = "";
+            uren.forEach((item, index) => {
+                let li = document.createElement("li");
+                li.textContent = `${item.datum}: ${item.starttijd} - ${item.eindtijd} (${item.beschrijving})`;
+                lijst.appendChild(li);
+            });
+        }
+        
+        function laadUrenbonnen() {
+            let urenbonnen = JSON.parse(localStorage.getItem("urenbonnen")) || ["Standaard"];
+            let select = document.getElementById("urenbonSelect");
+            select.innerHTML = "";
+            urenbonnen.forEach(naam => {
+                let option = document.createElement("option");
+                option.value = naam;
+                option.textContent = naam;
+                if (naam === huidigeUrenbon) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+        
+        function wisselUrenbon() {
+            let select = document.getElementById("urenbonSelect");
+            huidigeUrenbon = select.value;
+            localStorage.setItem("huidigeUrenbon", huidigeUrenbon);
+            toonUren();
+        }
+    </script>
+</body>
+</html>
